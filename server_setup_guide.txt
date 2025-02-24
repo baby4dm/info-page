@@ -1,0 +1,88 @@
+🚀 ІНСТРУКЦІЯ: ЯК ЗАПУСТИТИ СЕРВЕР ДЛЯ ПЕРЕВІРКИ ПОВІТРЯНОЇ ТРИВОГИ В КИЄВІ
+
+📌 КРОК 1: Перевірка наявності Node.js та npm
+1. Відкрий PowerShell або Термінал і введи:
+   node -v
+   npm -v
+2. Якщо Node.js не встановлений, завантаж його з https://nodejs.org/
+
+📌 КРОК 2: Створення папки для проекту
+1. Введи в PowerShell:
+   mkdir dsns
+   cd dsns
+
+📌 КРОК 3: Ініціалізація Node.js проекту
+1. Виконай команду:
+   npm init -y
+
+📌 КРОК 4: Встановлення необхідних пакетів
+1. Введи:
+   npm install express cors axios
+
+📌 КРОК 5: Створення файлу сервера
+1. Створи файл server.js:
+   New-Item -Path . -Name "server.js" -ItemType "File"
+2. Відкрий файл server.js та встав цей код:
+
+const express = require("express");
+const cors = require("cors");
+const axios = require("axios");
+
+const app = express();
+const PORT = 3000;
+
+app.use(cors());
+
+const BASE_API_URL = "https://api.ukrainealarm.com/api/v3/alerts/31";
+const API_KEY = "c46b1fe0:b9b6403056f23d21ebe53a78b659881b";
+
+app.get("/api/kyiv-alert", async (req, res) => {
+    try {
+        console.log("Fetching Kyiv alert data...");
+        const response = await axios.get(BASE_API_URL, {
+            headers: { "Authorization": API_KEY, "Accept": "application/json" }
+        });
+        const data = response.data;
+        const kyivRegion = data.find(region => region.regionId === "31");
+
+        if (!kyivRegion) {
+            return res.json({ region: "м. Київ", alert: "Немає даних про м. Київ" });
+        }
+
+        const hasAirAlert = kyivRegion.activeAlerts && kyivRegion.activeAlerts.some(alert => alert.type === "AIR");
+        res.json({ region: kyivRegion.regionName, alert: hasAirAlert ? "🔴 Тривога у м. Київ!" : "🟢 м. Київ повітряної тривоги немає" });
+
+    } catch (error) {
+        console.error("API fetch error:", error.response ? error.response.data : error.message);
+        res.status(error.response?.status || 500).json({ error: "Failed to fetch data", details: error.message });
+    }
+});
+
+app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+
+3. Збережи файл.
+
+📌 КРОК 6: Запуск сервера
+1. У консолі введи:
+   node server.js
+
+📌 КРОК 7: Перевірка роботи API
+1. Відкрий браузер і введи:
+   http://localhost:3000/api/kyiv-alert
+2. АБО введи в PowerShell:
+   curl http://localhost:3000/api/kyiv-alert
+
+📌 КРОК 8: Автоматичний перезапуск сервера (опціонально)
+1. Встанови nodemon:
+   npm install -g nodemon
+2. Запусти сервер:
+   nodemon server.js
+
+✅ Тепер твій сервер працює!
+
+🎯 Що робити далі?
+1️⃣ Розгорнути сервер в інтернеті (Render, Railway, VPS)
+2️⃣ Створити веб-інтерфейс для відображення статусу тривоги
+3️⃣ Додати підтримку інших міст
+
+💬 Якщо потрібна допомога – звертайся! 🚀
